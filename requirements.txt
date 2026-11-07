@@ -1,0 +1,7 @@
+Flask==3.1.*
+gunicorn==23.*
+requests>=2.32
+psycopg2-binary>=2.9.9
+pywebpush>=2.0.0
+cryptography>=42
+Werkzeug>=3.0

@@ -1,0 +1,35 @@
+services:
+  - type: web
+    name: worldly
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --workers 2 --threads 4 --timeout 60 --bind 0.0.0.0:$PORT
+    healthCheckPath: /robots.txt
+    envVars:
+      - {key: PYTHON_VERSION, value: "3.12.3"}
+      - {key: FLASK_ENV, value: production}
+      - {key: SECRET_KEY, generateValue: true}
+      - {key: CRON_TOKEN, generateValue: true}
+      - {key: DATABASE_URL, sync: false}        # chaîne de connexion Supabase (pooler, mode session ou direct)
+      - {key: ADMIN_PATH, value: gestion-wl}
+      - {key: ADMIN_USER, sync: false}
+      - {key: ADMIN_PASSWORD_HASH, sync: false}  # python gen_admin_hash.py
+      - {key: VAPID_PUBLIC_KEY, sync: false}     # python gen_vapid.py
+      - {key: VAPID_PRIVATE_KEY, sync: false}
+      - {key: VAPID_SUBJECT, value: "mailto:contact@votredomaine.com"}
+      - {key: SITE_URL, sync: false}             # https://votre-site.onrender.com
+  - type: cron
+    name: worldly-news
+    runtime: python
+    schedule: "*/30 * * * *"
+    buildCommand: "true"
+    startCommand: curl -fsS -X POST -H "X-Cron-Token: $CRON_TOKEN" "$SITE_URL/cron/refresh-news"
+    envVars: [{key: CRON_TOKEN, sync: false}, {key: SITE_URL, sync: false}]
+  - type: cron
+    name: worldly-weather-alerts
+    runtime: python
+    schedule: "0 */3 * * *"
+    buildCommand: "true"
+    startCommand: curl -fsS -X POST -H "X-Cron-Token: $CRON_TOKEN" "$SITE_URL/cron/weather-alerts"
+    envVars: [{key: CRON_TOKEN, sync: false}, {key: SITE_URL, sync: false}]
