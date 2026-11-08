@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% macro f(endpoint, cls='', confirm='') %}<form method="post" action="{{ url_for(endpoint, **kwargs) }}" class="inline {{ cls }}" {% if confirm %}data-confirm="{{ confirm }}"{% endif %}><input type="hidden" name="csrf" value="{{ csrf_token() }}">{{ caller() }}</form>{% endmacro %}
+{% block content %}
+<section class="block admin">
+<nav class="admin-nav" aria-label="Admin">
+  {% for key, label, ep in [('dashboard','Tableau de bord','admin.dashboard'),('news','Actualités','admin.news_'),('categories','Catégories','admin.categories'),('sources','Sources','admin.sources'),('ads','Publicités','admin.ads'),('notifications','Notifications','admin.notifications'),('messages','Messages','admin.messages'),('errors','Erreurs','admin.errors'),('settings','Paramètres','admin.settings')] %}
+  <a href="{{ url_for(ep) }}" {% if section == key %}aria-current="page"{% endif %}>{{ label }}</a>{% endfor %}
+  {% call f('admin.logout') %}<button class="btn btn-small btn-ghost" type="submit">Déconnexion</button>{% endcall %}
+</nav>
+{% with m = get_flashed_messages(with_categories=true) %}{% for c, x in m %}<p class="flash {{ c }}" role="alert">{{ x }}</p>{% endfor %}{% endwith %}
+
+{% if section == 'dashboard' %}
+<h1 class="h1">Tableau de bord</h1>
+{% if not push_ready %}<p class="flash err">Web Push inactif : définir VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY et installer pywebpush.</p>{% endif %}
+<div class="stats">
+ <div><b>{{ stats.today.uniques }}</b><span>Visiteurs aujourd'hui</span></div><div><b>{{ stats.week }}</b><span>7 jours</span></div><div><b>{{ stats.month }}</b><span>30 jours</span></div><div><b>{{ stats.total }}</b><span>Total visiteurs</span></div>
+ <div><b>{{ stats.subs }}</b><span>Abonnés push</span></div><div><b>{{ stats.articles }}</b><span>Articles</span></div><div><b>{{ stats.pending }}</b><span>Demandes pub en attente</span></div><div><b>{{ stats.live }}</b><span>Pubs en ligne</span></div>
+ <div><b>{{ stats.sent }}</b><span>Notifications envoyées</span></div><div><b>{{ stats.unread }}</b><span>Messages à traiter</span></div><div><b>{{ stats.errors }}</b><span>Erreurs techniques</span></div><div><b>{{ stats.last_refresh[:16] or '—' }}</b><span>Dernière actualisation actus (UTC)</span></div>
+</div>
+<h2 class="h">Visites (14 derniers jours)</h2>
+<div class="bars" role="img" aria-label="Visites par jour">{% for d in chart %}<div title="{{ d.day }} : {{ d.hits }} pages, {{ d.uniques }} visiteurs"><i style="height: {{ (d.hits / top * 100)|round|int }}%"></i><span>{{ d.day[8:] }}</span></div>{% endfor %}</div>
+
+{% elif section == 'news' %}
+<h1 class="h1">Actualités</h1>
+<div class="row">{% call f('admin.news_refresh') %}<button class="btn" type="submit">Actualiser maintenant</button>{% endcall %}
+<form class="search" method="get"><input type="search" name="q" value="{{ q }}" placeholder="Titre…"><button class="btn btn-ghost" type="submit">Chercher</button></form></div>
+<details><summary>Ajouter un article manuellement</summary>
+{% call f('admin.news_add', 'form') %}<label>Titre<input name="title" required maxlength="300"></label><label>Lien<input type="url" name="url" required></label><label>Image (https, optionnel)<input type="url" name="image"></label><label>Source<input name="source" maxlength="100"></label>
+<label>Catégorie<select name="category">{% for c in categories %}<option value="{{ c.slug }}">{{ c.label }}</option>{% endfor %}</select></label><label>Langue<select name="language"><option>fr</option><option>en</option><option>es</option></select></label><label class="check"><input type="checkbox" name="featured"> À la une</label><button class="btn" type="submit">Ajouter</button>{% endcall %}</details>
+<div class="table-wrap"><table><thead><tr><th>Article</th><th>Cat.</th><th>Clics</th><th>Actions</th></tr></thead><tbody>
+{% for a in items %}<tr class="{{ 'dim' if a.hidden }}"><td><a href="{{ a.url }}" target="_blank" rel="noopener">{{ a.title }}</a><br><span class="muted">{{ a.source_name }} · {{ a.published_at[:16] }}</span></td><td>{{ a.category }}</td><td>{{ a.clicks }}</td>
+<td class="acts">{% call f('admin.news_action', aid=a.id, action='featured') %}<button class="btn btn-small btn-ghost" type="submit">{{ 'Retirer une' if a.featured else 'Mettre à la une' }}</button>{% endcall %}
+{% call f('admin.news_action', aid=a.id, action='hidden') %}<button class="btn btn-small btn-ghost" type="submit">{{ 'Afficher' if a.hidden else 'Masquer' }}</button>{% endcall %}
+{% if push_ready %}{% call f('admin.news_action', confirm='Envoyer cette actualité à tous les abonnés « actualités » ?', aid=a.id, action='push') %}<button class="btn btn-small" type="submit">Notifier</button>{% endcall %}{% endif %}
+{% call f('admin.news_action', confirm='Supprimer cet article ?', aid=a.id, action='delete') %}<button class="btn btn-small btn-danger" type="submit">Suppr.</button>{% endcall %}</td></tr>{% endfor %}</tbody></table></div>
+<p class="center">{% if page > 1 %}<a class="btn btn-ghost" href="?q={{ q }}&page={{ page - 1 }}">←</a>{% endif %}{% if more %}<a class="btn btn-ghost" href="?q={{ q }}&page={{ page + 1 }}">→</a>{% endif %}</p>
+
+{% elif section == 'categories' %}
+<h1 class="h1">Catégories</h1><p class="muted">Requêtes GDELT par langue (utilisez des parenthèses et OR).</p>
+{% for c in categories %}{% call f('admin.categories_save', 'form box') %}<input type="hidden" name="slug" value="{{ c.slug }}"><strong>{{ c.slug }}</strong>
+<label>Nom<input name="label" value="{{ c.label }}"></label><label>Requête EN<input name="q_en" value="{{ c.q_en }}"></label><label>Requête FR<input name="q_fr" value="{{ c.q_fr }}"></label><label>Requête ES<input name="q_es" value="{{ c.q_es }}"></label>
+<label>Position<input type="number" name="position" value="{{ c.position }}"></label><label class="check"><input type="checkbox" name="active" {% if c.active %}checked{% endif %}> Active</label><button class="btn btn-small" type="submit">Enregistrer</button>{% endcall %}{% endfor %}
+<details><summary>Nouvelle catégorie</summary>{% call f('admin.categories_save', 'form box') %}<label>Identifiant (a-z, 0-9, -)<input name="slug" required></label><label>Nom<input name="label" required></label><label>Requête EN<input name="q_en"></label><label>Requête FR<input name="q_fr"></label><label>Requête ES<input name="q_es"></label><input type="hidden" name="position" value="99"><input type="hidden" name="active" value="1"><button class="btn" type="submit">Créer</button>{% endcall %}</details>
+
+{% elif section == 'sources' %}
+<h1 class="h1">Sources</h1><p class="muted">Désactiver une source la bloque et masque ses articles automatiques.</p>
+{% call f('admin.sources_save', 'form box') %}<label>Domaine<input name="domain" placeholder="exemple.com" required></label><label>Nom affiché<input name="name"></label><label class="check"><input type="checkbox" name="active" checked> Active</label><button class="btn" type="submit">Ajouter / mettre à jour</button>{% endcall %}
+<div class="table-wrap"><table><thead><tr><th>Domaine</th><th>Nom</th><th>Articles</th><th></th></tr></thead><tbody>{% for s in sources %}<tr><td>{{ s.domain }}</td>
+<td>{% call f('admin.sources_save', 'row') %}<input type="hidden" name="domain" value="{{ s.domain }}"><input name="name" value="{{ s.name }}"><label class="check"><input type="checkbox" name="active" {% if s.active %}checked{% endif %}> active</label><button class="btn btn-small" type="submit">OK</button>{% endcall %}</td><td>{{ s.n }}</td><td></td></tr>{% endfor %}</tbody></table></div>
+
+{% elif section == 'ads' %}
+<h1 class="h1">Publicités</h1><p class="muted">Maximum 2 publicités visibles simultanément. Une campagne n'est publiable qu'après confirmation du paiement.</p>
+<h2 class="h">Demandes</h2>
+{% for r in requests %}<div class="box"><p><strong>{{ r.advertiser }}</strong> · <a href="mailto:{{ r.email }}">{{ r.email }}</a> · {{ r.duration_days }} j · <span class="pill">{{ r.status }}</span></p><p>{{ r.description }}</p><p><a href="{{ r.link }}" target="_blank" rel="noopener nofollow">{{ r.link }}</a> · <span class="muted">{{ r.created_at[:16] }}</span></p>
+<div class="row">{% for act, label in [('approve','Approuver'),('reject','Refuser'),('paid','Paiement reçu → créer la campagne')] %}{% call f('admin.ad_request', rid=r.id, action=act) %}<input name="note" placeholder="Note (optionnel)" maxlength="500" value="{{ r.admin_note or '' }}"><button class="btn btn-small {{ 'btn-ghost' if act != 'paid' }}" type="submit">{{ label }}</button>{% endcall %}{% endfor %}</div></div>{% else %}<p class="muted">Aucune demande.</p>{% endfor %}
+<h2 class="h">Campagnes</h2>
+{% for c in campaigns %}{% call f('admin.campaign', 'form box', cid=c.id, action='save') %}<p><strong>#{{ c.id }}</strong> <span class="pill">{{ 'active' if c.active else 'inactive' }}</span> {{ c.impressions }} affichages · {{ c.clicks }} clics</p>
+<label>Titre<input name="title" value="{{ c.title }}" maxlength="80"></label><label>Texte<input name="text" value="{{ c.text }}" maxlength="200"></label><label>Lien<input name="link" value="{{ c.link }}"></label><label>Fin (UTC)<input name="end_at" value="{{ c.end_at }}"></label><button class="btn btn-small" type="submit">Enregistrer</button>{% endcall %}
+<div class="row">{% call f('admin.campaign', cid=c.id, action='toggle') %}<button class="btn btn-small btn-ghost" type="submit">{{ 'Désactiver' if c.active else 'Activer' }}</button>{% endcall %}{% call f('admin.campaign', confirm='Supprimer cette campagne ?', cid=c.id, action='delete') %}<button class="btn btn-small btn-danger" type="submit">Supprimer</button>{% endcall %}</div>{% else %}<p class="muted">Aucune campagne.</p>{% endfor %}
+
+{% elif section == 'notifications' %}
+<h1 class="h1">Notifications</h1>
+<p><b>{{ subs }}</b> abonnés actifs — {% for c, n in by_cat.items() %}{{ c }} : {{ n }}{% if not loop.last %} · {% endif %}{% endfor %}</p>
+{% if not push_ready %}<p class="flash err">Web Push inactif : configurez les clés VAPID et installez pywebpush.</p>{% endif %}
+{% call f('admin.notif_send', 'form box', confirm='Envoyer cette notification ?') %}<label>Titre<input name="title" required maxlength="100"></label><label>Message<textarea name="body" rows="3" required maxlength="250"></textarea></label><label>Lien (chemin ou https)<input name="url" value="/"></label>
+<label>Cible<select name="category"><option value="all">Tous les abonnés</option><option value="news">Actualités</option><option value="weather">Météo</option><option value="worldly">Nouveautés WORLDLY</option><option value="ads">Publicités</option></select></label><button class="btn" type="submit">Envoyer</button>{% endcall %}
+<h2 class="h">Historique</h2><div class="table-wrap"><table><thead><tr><th>Date</th><th>Titre</th><th>Cible</th><th>OK</th><th>Échecs</th></tr></thead><tbody>{% for n in history %}<tr><td>{{ n.created_at[:16] }}</td><td>{{ n.title }}<br><span class="muted">{{ n.body }}</span></td><td>{{ n.category }}</td><td>{{ n.sent_count }}</td><td>{{ n.failed_count }}</td></tr>{% endfor %}</tbody></table></div>
+
+{% elif section == 'messages' %}
+<h1 class="h1">Messages</h1>{% for m in messages %}<div class="box {{ 'dim' if m.handled }}"><p><strong>{{ m.name }}</strong> · <a href="mailto:{{ m.email }}">{{ m.email }}</a> · <span class="muted">{{ m.created_at[:16] }}</span></p><p>{{ m.message }}</p>{% call f('admin.message_handled', mid=m.id) %}<button class="btn btn-small btn-ghost" type="submit">{{ 'Rouvrir' if m.handled else 'Marquer traité' }}</button>{% endcall %}</div>{% else %}<p class="muted">Aucun message.</p>{% endfor %}
+
+{% elif section == 'errors' %}
+<h1 class="h1">Erreurs techniques</h1>{% call f('admin.errors_clear', confirm='Vider le journal ?') %}<button class="btn btn-small btn-ghost" type="submit">Vider</button>{% endcall %}
+{% for e in errors %}<div class="box"><p class="muted">{{ e.created_at[:19] }} · {{ e.path }}</p><pre>{{ e.message }}</pre></div>{% else %}<p class="muted">Aucune erreur.</p>{% endfor %}
+
+{% elif section == 'settings' %}
+<h1 class="h1">Paramètres du site</h1>
+{% call f('admin.settings', 'form') %}
+<label>Nom du site<input name="site_name" value="{{ s.site_name }}"></label>
+<label>Lien de téléchargement (APK, store…)<input name="download_url" value="{{ s.download_url }}" placeholder="https://"></label>
+<label>Lien de paiement sécurisé (ex. Stripe Payment Link)<input name="payment_link" value="{{ s.payment_link }}" placeholder="https://"></label>
+<label>Instructions de paiement<textarea name="payment_instructions" rows="3">{{ s.payment_instructions }}</textarea></label>
+<label>Langues des actualités (fr,en,es)<input name="news_langs" value="{{ s.news_langs }}"></label>
+<label>Conservation des articles (jours)<input name="news_retention_days" value="{{ s.news_retention_days }}"></label>
+<label>E-mail de contact<input name="contact_email" value="{{ s.contact_email }}"></label>
+<label class="check"><input type="checkbox" name="ads_enabled" {% if s.ads_enabled == '1' %}checked{% endif %}> Afficher les publicités</label>
+<button class="btn" type="submit">Enregistrer</button>{% endcall %}
+{% endif %}
+</section>
+{% endblock %}
