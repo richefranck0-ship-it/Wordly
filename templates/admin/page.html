@@ -3,7 +3,7 @@
 {% block content %}
 <section class="block admin">
 <nav class="admin-nav" aria-label="Admin">
-  {% for key, label, ep in [('dashboard','Tableau de bord','admin.dashboard'),('news','Actualités','admin.news_'),('categories','Catégories','admin.categories'),('sources','Sources','admin.sources'),('ads','Publicités','admin.ads'),('notifications','Notifications','admin.notifications'),('messages','Messages','admin.messages'),('errors','Erreurs','admin.errors'),('settings','Paramètres','admin.settings')] %}
+  {% for key, label, ep in [('dashboard','Tableau de bord','admin.dashboard'),('news','Actualités','admin.news_'),('categories','Catégories','admin.categories'),('sources','Sources','admin.sources'),('feeds','Flux RSS','admin.feeds'),('partners','Sites partenaires','admin.partners'),('ads','Publicités','admin.ads'),('notifications','Notifications','admin.notifications'),('messages','Messages','admin.messages'),('errors','Erreurs','admin.errors'),('settings','Paramètres','admin.settings')] %}
   <a href="{{ url_for(ep) }}" {% if section == key %}aria-current="page"{% endif %}>{{ label }}</a>{% endfor %}
   {% call f('admin.logout') %}<button class="btn btn-small btn-ghost" type="submit">Déconnexion</button>{% endcall %}
 </nav>
@@ -15,7 +15,7 @@
 <div class="stats">
  <div><b>{{ stats.today.uniques }}</b><span>Visiteurs aujourd'hui</span></div><div><b>{{ stats.week }}</b><span>7 jours</span></div><div><b>{{ stats.month }}</b><span>30 jours</span></div><div><b>{{ stats.total }}</b><span>Total visiteurs</span></div>
  <div><b>{{ stats.subs }}</b><span>Abonnés push</span></div><div><b>{{ stats.articles }}</b><span>Articles</span></div><div><b>{{ stats.pending }}</b><span>Demandes pub en attente</span></div><div><b>{{ stats.live }}</b><span>Pubs en ligne</span></div>
- <div><b>{{ stats.sent }}</b><span>Notifications envoyées</span></div><div><b>{{ stats.unread }}</b><span>Messages à traiter</span></div><div><b>{{ stats.errors }}</b><span>Erreurs techniques</span></div><div><b>{{ stats.last_refresh[:16] or '—' }}</b><span>Dernière actualisation actus (UTC)</span></div>
+ <div><b>{{ stats.sent }}</b><span>Notifications envoyées</span></div><div><b>{{ stats.partners_pending }}</b><span>Sites à valider</span></div><div><b>{{ stats.unread }}</b><span>Messages à traiter</span></div><div><b>{{ stats.errors }}</b><span>Erreurs techniques</span></div><div><b>{{ stats.last_refresh[:16] or '—' }}</b><span>Dernière actualisation actus (UTC)</span></div>
 </div>
 <h2 class="h">Visites (14 derniers jours)</h2>
 <div class="bars" role="img" aria-label="Visites par jour">{% for d in chart %}<div title="{{ d.day }} : {{ d.hits }} pages, {{ d.uniques }} visiteurs"><i style="height: {{ (d.hits / top * 100)|round|int }}%"></i><span>{{ d.day[8:] }}</span></div>{% endfor %}</div>
@@ -48,14 +48,51 @@
 <div class="table-wrap"><table><thead><tr><th>Domaine</th><th>Nom</th><th>Articles</th><th></th></tr></thead><tbody>{% for s in sources %}<tr><td>{{ s.domain }}</td>
 <td>{% call f('admin.sources_save', 'row') %}<input type="hidden" name="domain" value="{{ s.domain }}"><input name="name" value="{{ s.name }}"><label class="check"><input type="checkbox" name="active" {% if s.active %}checked{% endif %}> active</label><button class="btn btn-small" type="submit">OK</button>{% endcall %}</td><td>{{ s.n }}</td><td></td></tr>{% endfor %}</tbody></table></div>
 
+{% elif section == 'feeds' %}
+<h1 class="h1">Flux RSS</h1><p class="muted">Deuxième source d'actualités, en plus de GDELT. Seuls le titre, la date, l'image et le lien sont repris ; l'article se lit sur le site d'origine.</p>
+{% call f('admin.feed_fetch') %}<button class="btn" type="submit">Lire les flux maintenant</button>{% endcall %}
+<details open><summary>Ajouter un flux</summary>{% call f('admin.feed_add', 'form box') %}<label>Nom du site<input name="name" required maxlength="100"></label><label>URL du flux RSS/Atom<input type="url" name="url" required placeholder="https://…/rss.xml"></label>
+<label>Catégorie<select name="category">{% for c in categories %}<option value="{{ c.slug }}">{{ c.label }}</option>{% endfor %}</select></label><label>Langue<select name="language"><option>fr</option><option>en</option><option>es</option></select></label><label>Pays (comme affiché dans le filtre, ex. France)<input name="country" maxlength="60"></label><button class="btn" type="submit">Ajouter</button>{% endcall %}</details>
+{% for x in feeds %}<div class="box {{ 'dim' if not x.active }}"><p><strong>{{ x.name }}</strong> <span class="pill">{{ 'actif' if x.active else 'désactivé' }}</span><br><a href="{{ x.url }}" target="_blank" rel="noopener">{{ x.url }}</a><br>
+<span class="muted">Dernière lecture : {{ x.last_fetch[:16] if x.last_fetch else 'jamais' }} · {{ x.last_count }} nouveaux articles</span>{% if x.last_error %}<br><span class="flash err">{{ x.last_error }}</span>{% endif %}</p>
+{% call f('admin.feed_action', 'form', fid=x.id, action='save') %}<label>Nom<input name="name" value="{{ x.name }}"></label><label>Catégorie<select name="category">{% for c in categories %}<option value="{{ c.slug }}" {% if c.slug == x.category %}selected{% endif %}>{{ c.label }}</option>{% endfor %}</select></label><label>Langue<select name="language">{% for l in ['fr','en','es'] %}<option {% if l == x.language %}selected{% endif %}>{{ l }}</option>{% endfor %}</select></label><label>Pays<input name="country" value="{{ x.country }}"></label><button class="btn btn-small" type="submit">Enregistrer</button>{% endcall %}
+<div class="row">{% call f('admin.feed_action', fid=x.id, action='toggle') %}<button class="btn btn-small btn-ghost" type="submit">{{ 'Désactiver' if x.active else 'Activer' }}</button>{% endcall %}{% call f('admin.feed_action', confirm='Supprimer ce flux ?', fid=x.id, action='delete') %}<button class="btn btn-small btn-danger" type="submit">Supprimer</button>{% endcall %}</div></div>{% else %}<p class="muted">Aucun flux.</p>{% endfor %}
+
+{% elif section == 'partners' %}
+<h1 class="h1">Sites partenaires</h1><p class="muted">Sites proposés par des tiers. Approuvez pour les afficher sur la page « Sites partenaires » (et ajouter leur flux RSS s'ils en ont fourni un).</p>
+{% for p in partners %}<div class="box {{ 'dim' if p.status == 'rejected' }}"><p><strong>{{ p.name }}</strong> <span class="pill">{{ p.status }}</span>{% if p.featured %} <span class="pill">à la une</span>{% endif %} · {{ p.clicks }} clics<br>
+<a href="{{ p.url }}" target="_blank" rel="noopener nofollow">{{ p.url }}</a> · <a href="mailto:{{ p.email }}">{{ p.email }}</a></p><p>{{ p.description }}</p>
+{% if p.feed_url %}<p class="muted">Flux RSS : {{ p.feed_url }} ({{ p.feed_lang }})</p>{% endif %}
+<div class="row">{% for act, label in [('approve','Approuver'),('reject','Refuser')] %}{% call f('admin.partner_action', pid=p.id, action=act) %}<input name="note" placeholder="Note (optionnel)" maxlength="500" value="{{ p.admin_note or '' }}"><button class="btn btn-small {{ 'btn-ghost' if act != 'approve' }}" type="submit">{{ label }}</button>{% endcall %}{% endfor %}
+{% call f('admin.partner_action', pid=p.id, action='feature') %}<button class="btn btn-small btn-ghost" type="submit">{{ 'Retirer de la une' if p.featured else 'Mettre à la une' }}</button>{% endcall %}
+{% call f('admin.partner_action', confirm='Supprimer ce site ?', pid=p.id, action='delete') %}<button class="btn btn-small btn-danger" type="submit">Supprimer</button>{% endcall %}</div></div>{% else %}<p class="muted">Aucun site proposé.</p>{% endfor %}
+
 {% elif section == 'ads' %}
 <h1 class="h1">Publicités</h1><p class="muted">Maximum 2 publicités visibles simultanément. Une campagne n'est publiable qu'après confirmation du paiement.</p>
 <h2 class="h">Demandes</h2>
 {% for r in requests %}<div class="box"><p><strong>{{ r.advertiser }}</strong> · <a href="mailto:{{ r.email }}">{{ r.email }}</a> · {{ r.duration_days }} j · <span class="pill">{{ r.status }}</span></p><p>{{ r.description }}</p><p><a href="{{ r.link }}" target="_blank" rel="noopener nofollow">{{ r.link }}</a> · <span class="muted">{{ r.created_at[:16] }}</span></p>
 <div class="row">{% for act, label in [('approve','Approuver'),('reject','Refuser'),('paid','Paiement reçu → créer la campagne')] %}{% call f('admin.ad_request', rid=r.id, action=act) %}<input name="note" placeholder="Note (optionnel)" maxlength="500" value="{{ r.admin_note or '' }}"><button class="btn btn-small {{ 'btn-ghost' if act != 'paid' }}" type="submit">{{ label }}</button>{% endcall %}{% endfor %}</div></div>{% else %}<p class="muted">Aucune demande.</p>{% endfor %}
+<h2 class="h">Bannières et liens</h2>
+<details open><summary>Ajouter une bannière publicitaire</summary>
+<form method="post" action="{{ url_for('admin.banner_new') }}" enctype="multipart/form-data" class="form box"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
+<label>Nom (texte alternatif)<input name="title" maxlength="80" required></label>
+<label>Lien de destination (https://…)<input type="url" name="link" required placeholder="https://"></label>
+<label>Image : envoyer un fichier (PNG/JPG/GIF/WEBP, 400 Ko max)<input type="file" name="image" accept="image/png,image/jpeg,image/gif,image/webp"></label>
+<label>… ou lien d'une image (https)<input type="url" name="image_url" placeholder="https://…/banniere.jpg"></label>
+<label>Texte (affiché si pas d'image, ou en complément)<input name="text" maxlength="200"></label>
+<label>Emplacement<select name="placement"><option value="top">Haut de page (sous l'en-tête)</option><option value="bottom">Bas de page</option></select></label>
+<label>Durée (jours)<input type="number" name="days" value="30" min="1" max="365"></label>
+<label class="check"><input type="checkbox" name="activate" checked> Publier maintenant</label>
+<p class="muted">Taille conseillée : 728×90 (ordinateur) ou 320×100 (mobile). Maximum 2 publicités en ligne en même temps.</p>
+<button class="btn" type="submit">Créer la bannière</button></form></details>
 <h2 class="h">Campagnes</h2>
-{% for c in campaigns %}{% call f('admin.campaign', 'form box', cid=c.id, action='save') %}<p><strong>#{{ c.id }}</strong> <span class="pill">{{ 'active' if c.active else 'inactive' }}</span> {{ c.impressions }} affichages · {{ c.clicks }} clics</p>
-<label>Titre<input name="title" value="{{ c.title }}" maxlength="80"></label><label>Texte<input name="text" value="{{ c.text }}" maxlength="200"></label><label>Lien<input name="link" value="{{ c.link }}"></label><label>Fin (UTC)<input name="end_at" value="{{ c.end_at }}"></label><button class="btn btn-small" type="submit">Enregistrer</button>{% endcall %}
+{% for c in campaigns %}<form method="post" action="{{ url_for('admin.campaign', cid=c.id, action='save') }}" enctype="multipart/form-data" class="form box"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
+<p><strong>#{{ c.id }}</strong> <span class="pill">{{ 'active' if c.active else 'inactive' }}</span> {{ c.impressions }} affichages · {{ c.clicks }} clics</p>
+{% if c.image_mime or c.image_url %}<img class="thumb" src="{{ c.image_url or url_for('ad_img', cid=c.id) }}" alt="" loading="lazy">{% endif %}
+<label>Titre<input name="title" value="{{ c.title }}" maxlength="80"></label><label>Texte<input name="text" value="{{ c.text }}" maxlength="200"></label><label>Lien<input name="link" value="{{ c.link }}"></label>
+<label>Lien d'image<input name="image_url" value="{{ c.image_url or '' }}"></label><label>Nouvelle image (fichier)<input type="file" name="image" accept="image/png,image/jpeg,image/gif,image/webp"></label>
+<label>Emplacement<select name="placement"><option value="top" {% if c.placement == 'top' %}selected{% endif %}>Haut</option><option value="bottom" {% if c.placement != 'top' %}selected{% endif %}>Bas</option></select></label>
+<label>Fin (UTC)<input name="end_at" value="{{ c.end_at }}"></label><label class="check"><input type="checkbox" name="remove_image"> Supprimer l'image</label><button class="btn btn-small" type="submit">Enregistrer</button></form>
 <div class="row">{% call f('admin.campaign', cid=c.id, action='toggle') %}<button class="btn btn-small btn-ghost" type="submit">{{ 'Désactiver' if c.active else 'Activer' }}</button>{% endcall %}{% call f('admin.campaign', confirm='Supprimer cette campagne ?', cid=c.id, action='delete') %}<button class="btn btn-small btn-danger" type="submit">Supprimer</button>{% endcall %}</div>{% else %}<p class="muted">Aucune campagne.</p>{% endfor %}
 
 {% elif section == 'notifications' %}
@@ -63,7 +100,7 @@
 <p><b>{{ subs }}</b> abonnés actifs — {% for c, n in by_cat.items() %}{{ c }} : {{ n }}{% if not loop.last %} · {% endif %}{% endfor %}</p>
 {% if not push_ready %}<p class="flash err">Web Push inactif : configurez les clés VAPID et installez pywebpush.</p>{% endif %}
 {% call f('admin.notif_send', 'form box', confirm='Envoyer cette notification ?') %}<label>Titre<input name="title" required maxlength="100"></label><label>Message<textarea name="body" rows="3" required maxlength="250"></textarea></label><label>Lien (chemin ou https)<input name="url" value="/"></label>
-<label>Cible<select name="category"><option value="all">Tous les abonnés</option><option value="news">Actualités</option><option value="weather">Météo</option><option value="worldly">Nouveautés WORLDLY</option><option value="ads">Publicités</option></select></label><button class="btn" type="submit">Envoyer</button>{% endcall %}
+<label>Cible<select name="category"><option value="all">Tous les abonnés</option><option value="news">Actualités</option><option value="weather">Météo</option><option value="worldly">Nouveautés WORLDLY</option><option value="ads">Publicités</option></select></label><label>Sujet d'actualité (optionnel, ex. Football)<select name="topic"><option value="">Tous les sujets</option>{% for c in categories %}<option value="{{ c.slug }}">{{ c.label }}</option>{% endfor %}</select></label><button class="btn" type="submit">Envoyer</button>{% endcall %}
 <h2 class="h">Historique</h2><div class="table-wrap"><table><thead><tr><th>Date</th><th>Titre</th><th>Cible</th><th>OK</th><th>Échecs</th></tr></thead><tbody>{% for n in history %}<tr><td>{{ n.created_at[:16] }}</td><td>{{ n.title }}<br><span class="muted">{{ n.body }}</span></td><td>{{ n.category }}</td><td>{{ n.sent_count }}</td><td>{{ n.failed_count }}</td></tr>{% endfor %}</tbody></table></div>
 
 {% elif section == 'messages' %}
