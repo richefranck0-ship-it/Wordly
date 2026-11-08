@@ -6,7 +6,7 @@
     async reg() { return navigator.serviceWorker.ready; },
     async current() { if (!supported) return null; return (await P.reg()).pushManager.getSubscription(); },
     // doit être appelé après un clic de l'utilisateur
-    async enable(categories, weather) {
+    async enable(categories, weather, topics) {
       if (!supported) throw new Error("unsupported");
       const cfg = await (await fetch("/api/push/config")).json();
       if (!cfg.enabled) throw new Error("server");
@@ -14,7 +14,7 @@
       if (perm !== "granted") throw new Error("denied");
       const reg = await P.reg();
       const sub = (await reg.pushManager.getSubscription()) || await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64(cfg.key) });
-      await WL.api("/api/push/subscribe", { subscription: sub.toJSON(), categories: categories || ["news", "weather", "worldly", "ads"], lang: WL.cfg.lang, weather });
+      await WL.api("/api/push/subscribe", { subscription: sub.toJSON(), categories: categories || ["news", "weather", "worldly", "ads"], lang: WL.cfg.lang, weather, topics: topics || [] });
       WL.store.set("wl_push_dismiss", 1);
       return sub;
     },

@@ -16,6 +16,7 @@
   document.querySelectorAll("[data-lang-switch]").forEach(s => s.addEventListener("change", () => {
     location.href = "/lang/" + s.value + "?next=" + encodeURIComponent(location.pathname + location.search);
   }));
+  document.querySelectorAll("select[data-autosubmit]").forEach(s => s.addEventListener("change", () => s.form.submit()));
   // confirmations (pas de JS inline à cause de la CSP)
   document.addEventListener("submit", e => { const m = e.target.dataset && e.target.dataset.confirm; if (m && !confirm(m)) e.preventDefault(); });
   // images cassées

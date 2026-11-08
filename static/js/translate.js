@@ -16,7 +16,7 @@
     $("qt-go").onclick = async () => {
       const txt = $("qt-in").value.trim(), out = $("qt-out"); if (!txt) return;
       out.textContent = T.translating;
-      try { out.textContent = (await WL.translate(txt, "auto", $("qt-dst").value)).text; } catch { out.textContent = T.tr_error; }
+      try { out.textContent = (await WL.translate(txt, "auto", $("qt-dst").value)).text; } catch (e) { out.textContent = T.tr_error + " (" + e.message + ")"; }
     };
   }
   if (!$("tr-page")) return;
@@ -43,7 +43,7 @@
       det.dataset.code = src.value === "auto" ? (j.detected || "") : "";
       det.textContent = src.value === "auto" && j.detected ? T.detected + " : " + ((LANGS[j.detected] || [j.detected])[0]) : "";
       saveHistory({ in: text, out: j.text, src: src.value, dst: dst.value });
-    } catch { if (my === seq) out.textContent = T.tr_error; }
+    } catch (e) { if (my === seq) out.textContent = T.tr_error + " (" + e.message + ")"; }
   }
   inp.addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(run, 700); }); // traduction instantanée
   src.onchange = dst.onchange = run;
