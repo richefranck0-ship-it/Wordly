@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="block" id="voice-page">
+  <h1 class="h1">{{ t.voice }}</h1>
+  <div class="langbar">
+    <select id="v-src" aria-label="{{ t.from }}">{% for c, (n, _) in languages.items() %}<option value="{{ c }}" {% if c == lang %}selected{% endif %}>{{ n }}</option>{% endfor %}</select>
+    <button class="icon-btn" id="v-swap" type="button" aria-label="{{ t.swap }}">⇄</button>
+    <select id="v-dst" aria-label="{{ t.to }}">{% for c, (n, _) in languages.items() %}<option value="{{ c }}" {% if c == ('en' if lang == 'fr' else 'fr') %}selected{% endif %}>{{ n }}</option>{% endfor %}</select>
+  </div>
+  <div class="mic-wrap">
+    <button class="btn btn-mic" id="v-start" type="button">{{ t.start }}</button>
+    <button class="btn btn-ghost btn-mic" id="v-stop" type="button" disabled>{{ t.stop }}</button>
+  </div>
+  <p id="v-status" class="status" role="status" aria-live="polite">{{ t.tap_start }}</p>
+  <h2 class="h">{{ t.recognized }}</h2><p class="out" id="v-text" dir="auto"></p>
+  <h2 class="h">{{ t.translation }}</h2><p class="out out-strong" id="v-out" dir="auto"></p>
+  <div class="row"><button class="btn btn-ghost btn-small" id="v-listen" type="button" disabled>{{ t.listen }}</button></div>
+</section>
+{% endblock %}
+{% block scripts %}<script src="/static/js/voice.js?v={{ v }}" defer></script>{% endblock %}

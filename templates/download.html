@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="block prose"><h1 class="h1">{{ t.download }} WORLDLY</h1>
+  {% if download_url %}<p><a class="btn" href="{{ download_url }}" rel="noopener">{{ t.download }}</a></p>{% endif %}
+  <p>WORLDLY s'installe comme une application, sans boutique d'applications :</p>
+  <p><button class="btn" id="install-btn-2" type="button" hidden>{{ t.install }}</button></p>
+  <ul><li><strong>Android (Chrome / Edge)</strong> : bouton « {{ t.install }} » ou menu ⋮ puis « Installer l'application ».</li>
+  <li><strong>iPhone / iPad (Safari)</strong> : {{ t.ios_install }}</li><li><strong>Ordinateur</strong> : icône d'installation dans la barre d'adresse.</li></ul>
+</section>{% endblock %}

@@ -1,0 +1,7 @@
+{% extends "base.html" %}{% block content %}<section class="block prose"><h1 class="h1">FAQ</h1>
+<details open><summary>D'où viennent les actualités ?</summary><p>Elles sont référencées automatiquement via GDELT. WORLDLY affiche uniquement le titre, la source, la date et un lien : chaque article se lit sur le site de l'éditeur.</p></details>
+<details><summary>Comment fonctionne la traduction ?</summary><p>Le texte saisi est envoyé à un prestataire de traduction via nos serveurs. La reconnaissance et la lecture vocales utilisent les fonctions de votre navigateur (Web Speech API) ; la qualité dépend de votre appareil.</p></details>
+<details><summary>La traduction vocale ne marche pas ?</summary><p>Autorisez le micro dans le navigateur et utilisez Chrome ou Edge (Android, ordinateur) ou un Safari récent. Firefox ne gère pas la reconnaissance vocale.</p></details>
+<details><summary>Comment recevoir les notifications ?</summary><p>Rendez-vous sur la page Notifications et appuyez sur « Activer ». Sur iPhone, installez d'abord WORLDLY sur l'écran d'accueil. Le son et la vibration dépendent de votre appareil.</p></details>
+<details><summary>La météo est-elle fiable ?</summary><p>Les données viennent d'Open-Meteo. Les alertes affichées sont calculées à partir des prévisions ; elles ne remplacent pas les alertes officielles de votre pays.</p></details>
+<details><summary>Comment afficher ma publicité ?</summary><p>Via la page « {{ t.advertise }} ». Après validation et paiement sécurisé, votre publicité est mise en ligne.</p></details></section>{% endblock %}

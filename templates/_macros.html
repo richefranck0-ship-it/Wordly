@@ -1,0 +1,12 @@
+{% macro card(a, big=False) %}
+<article class="card{% if big %} card-big{% endif %}">
+  {% if a.image %}<a class="card-img" href="{{ url_for('go', aid=a.id) }}" target="_blank" rel="noopener nofollow" tabindex="-1" aria-hidden="true">
+    <img src="{{ a.image }}" alt="" loading="lazy" width="640" height="360" referrerpolicy="no-referrer" data-hide-on-error></a>{% endif %}
+  <div class="card-body">
+    <h3><a href="{{ url_for('go', aid=a.id) }}" target="_blank" rel="noopener nofollow">{{ a.title }}</a></h3>
+    <p class="meta"><span>{{ a.source_name or a.domain }}</span>
+      <time datetime="{{ a.published_at.replace(' ', 'T') }}Z" data-rel>{{ a.published_at[:16] }}</time>
+      {% if a.featured %}<span class="pill">{{ t.featured }}</span>{% endif %}</p>
+  </div>
+</article>
+{% endmacro %}

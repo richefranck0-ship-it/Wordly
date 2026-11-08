@@ -1,0 +1,6 @@
+{% extends "base.html" %}{% block content %}<section class="block prose"><h1 class="h1">{{ t.privacy_settings }}</h1>
+<p>Gérez les données stockées sur cet appareil.</p>
+<div class="row"><a class="btn" href="/notifications">{{ t.notifications }}</a>
+<button class="btn btn-ghost" id="wipe-local" type="button">Effacer l'historique de traduction et la ville mémorisée</button></div>
+<p class="muted" id="wipe-msg" role="status"></p></section>{% endblock %}
+{% block scripts %}<script src="/static/js/privacy.js?v={{ v }}" defer></script>{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="block" id="notif-page">
+  <h1 class="h1">{{ t.notifications }}</h1>
+  <p class="lead">{{ t.notif_intro }}</p>
+  <p class="status" id="n-status" role="status">…</p>
+  <fieldset class="prefs" id="n-prefs"><legend class="sr">{{ t.notifications }}</legend>
+    <label><input type="checkbox" value="news" checked> {{ t.cat_news }}</label>
+    <label><input type="checkbox" value="weather" checked> {{ t.cat_weather }}</label>
+    <label><input type="checkbox" value="worldly" checked> {{ t.cat_worldly }}</label>
+    <label><input type="checkbox" value="ads" checked> {{ t.cat_ads }}</label>
+    <label><input type="checkbox" id="n-weather-city"> {{ t.weather_notif }} <span class="muted" id="n-city"></span></label>
+  </fieldset>
+  <div class="row"><button class="btn" id="n-enable" type="button">{{ t.enable }}</button><button class="btn btn-ghost" id="n-disable" type="button" hidden>{{ t.disable }}</button></div>
+  <p class="muted" id="n-hint"></p>
+  <h2 class="h">{{ t.notif_history }}</h2><ul class="history" id="n-history"><li class="muted">{{ t.empty }}</li></ul>
+</section>
+{% endblock %}
+{% block scripts %}<script src="/static/js/notifications.js?v={{ v }}" defer></script>{% endblock %}

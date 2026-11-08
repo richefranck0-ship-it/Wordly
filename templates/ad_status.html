@@ -1,0 +1,10 @@
+{% extends "base.html" %}{% block content %}
+<section class="block narrow"><h1 class="h1">Suivi de votre demande</h1>
+<p>Annonceur : <strong>{{ r.advertiser }}</strong> · Durée : {{ r.duration_days }} jours</p>
+{% if r.status == 'pending' %}<p class="flash ok">En attente de validation par l'administrateur. Conservez cette page (lien privé).</p>
+{% elif r.status == 'approved' %}<p class="flash ok">Demande approuvée. Prochaine étape : le paiement.</p>
+  {% if payment_link %}<p><a class="btn" href="{{ payment_link }}" rel="noopener">Payer via le prestataire sécurisé</a></p>{% endif %}
+  <p class="muted">{{ payment_instructions }}</p><p class="muted">Votre publicité sera publiée seulement après confirmation du paiement.</p>
+{% elif r.status == 'paid' %}<p class="flash ok">Paiement confirmé. Votre campagne est planifiée / en ligne.</p>
+{% else %}<p class="flash err">Demande refusée.{% if r.admin_note %} Motif : {{ r.admin_note }}{% endif %}</p>{% endif %}
+{% if r.admin_note and r.status != 'rejected' %}<p class="muted">Note : {{ r.admin_note }}</p>{% endif %}</section>{% endblock %}

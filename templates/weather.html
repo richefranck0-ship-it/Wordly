@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="block" id="weather-page" data-mode="full">
+  <h1 class="h1">{{ t.weather }}</h1>
+  <div class="city-search">
+    <label class="sr" for="city-in">{{ t.city_ph }}</label>
+    <input id="city-in" type="search" placeholder="{{ t.city_ph }}" autocomplete="off" maxlength="80">
+    <button class="btn btn-ghost" id="locate" type="button">{{ t.use_location }}</button>
+    <ul id="city-results" class="suggest" hidden></ul>
+  </div>
+  <p id="w-msg" class="muted" aria-live="polite">{{ t.choose_city }}</p>
+  <div id="w-data" hidden>
+    <div class="now"><div><p class="place" id="w-place"></p><p class="temp" id="w-temp"></p><p id="w-desc" class="muted"></p></div><p class="emoji" id="w-emoji" aria-hidden="true"></p></div>
+    <dl class="facts"><div><dt>{{ t.feels }}</dt><dd id="w-feels"></dd></div><div><dt>{{ t.humidity }}</dt><dd id="w-hum"></dd></div><div><dt>{{ t.wind }}</dt><dd id="w-wind"></dd></div><div><dt>{{ t.rain_prob }}</dt><dd id="w-rain"></dd></div><div><dt>{{ t.sunrise }}</dt><dd id="w-rise"></dd></div><div><dt>{{ t.sunset }}</dt><dd id="w-set"></dd></div></dl>
+    <h2 class="h">{{ t.alerts }}</h2><ul id="w-alerts" class="alerts"></ul>
+    <h2 class="h">{{ t.hourly }}</h2><div class="hours" id="w-hours"></div>
+    <h2 class="h">{{ t.daily }}</h2><ul class="days" id="w-days"></ul>
+  </div>
+</section>
+{% endblock %}
+{% block scripts %}<script src="/static/js/weather.js?v={{ v }}" defer></script>{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "base.html" %}{% block content %}
+<section class="block narrow"><h1 class="h1">{{ t.advertise }}</h1>
+<p class="lead">Touchez un public international. Maximum deux publicités visibles en même temps ; chaque demande est validée par notre équipe, puis publiée après confirmation du paiement.</p>
+{% with m = get_flashed_messages(with_categories=true) %}{% for c, x in m %}<p class="flash {{ c }}" role="alert">{{ x }}</p>{% endfor %}{% endwith %}
+<form method="post" class="form"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
+<input class="hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+<label>Nom de l'annonceur<input name="advertiser" required minlength="2" maxlength="100" value="{{ form.get('advertiser', '') }}"></label>
+<label>Adresse e-mail<input type="email" name="email" required maxlength="255" value="{{ form.get('email', '') }}"></label>
+<label>Description de la publicité<textarea name="description" rows="4" required minlength="20" maxlength="1000">{{ form.get('description', '') }}</textarea></label>
+<label>Durée souhaitée<select name="duration"><option value="7">7 jours</option><option value="14">14 jours</option><option value="30">30 jours</option></select></label>
+<label>Lien de destination<input type="url" name="link" required maxlength="500" placeholder="https://" value="{{ form.get('link', '') }}"></label>
+<label class="check"><input type="checkbox" name="consent" required> J'accepte les <a href="/terms">conditions d'utilisation</a> et le traitement de ces données pour étudier ma demande.</label>
+<p class="muted">Ne communiquez jamais de mot de passe ni de données bancaires dans ce formulaire ou par e-mail : le paiement se fait uniquement via un prestataire sécurisé.</p>
+<button class="btn" type="submit">Envoyer la demande</button></form></section>{% endblock %}

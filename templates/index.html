@@ -1,0 +1,47 @@
+{% extends "base.html" %}{% from "_macros.html" import card %}
+{% block content %}
+<section class="hero">
+  <svg class="hero-globe" viewBox="0 0 400 400" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="200" cy="200" r="190"/><ellipse cx="200" cy="200" rx="120" ry="190"/><ellipse cx="200" cy="200" rx="50" ry="190"/><path d="M10 200h380M40 110h320M40 290h320M80 50h240M80 350h240"/></g></svg>
+  <h1>{{ t.tagline }}</h1>
+  <p class="lead">{{ t.hero_sub }}</p>
+  <form class="search" action="/news" method="get" role="search">
+    <input type="search" name="q" placeholder="{{ t.search_ph }}" aria-label="{{ t.search }}" maxlength="80">
+    <button class="btn" type="submit">{{ t.search }}</button>
+  </form>
+</section>
+
+<section class="trio">
+  <div class="tile" id="weather-mini" data-mode="mini">
+    <h2><a href="/weather">{{ t.weather }}</a></h2>
+    <div class="mini-body"><p class="muted" data-wm-empty>{{ t.choose_city }}</p></div>
+    <button class="btn btn-small btn-ghost" id="wm-locate" type="button">{{ t.use_location }}</button>
+  </div>
+  <div class="tile" id="quick-tr">
+    <h2><a href="/translate">{{ t.quick_translate }}</a></h2>
+    <label class="sr" for="qt-in">{{ t.type_here }}</label>
+    <textarea id="qt-in" rows="2" maxlength="500" placeholder="{{ t.type_here }}"></textarea>
+    <div class="row">
+      <select id="qt-dst" aria-label="{{ t.to }}">{% for c, (n, _) in languages.items() %}<option value="{{ c }}" {% if c == ('en' if lang == 'fr' else 'fr') %}selected{% endif %}>{{ n }}</option>{% endfor %}</select>
+      <button class="btn btn-small" id="qt-go" type="button">{{ t.translate }}</button>
+    </div>
+    <p class="qt-out" id="qt-out" aria-live="polite"></p>
+  </div>
+  <a class="tile tile-voice" href="/voice">
+    <h2>{{ t.quick_voice }}</h2>
+    <svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4"/></svg>
+    <p>{{ t.tap_start }}</p>
+  </a>
+</section>
+
+<section class="block">
+  <div class="chips" role="list">{% for c in categories %}<a class="chip" role="listitem" href="/news?cat={{ c.slug }}">{{ c.label }}</a>{% endfor %}</div>
+  <h2 class="h">{{ t.latest }}</h2>
+  {% if top %}<div class="grid">{% for a in top %}{{ card(a, loop.first) }}{% endfor %}</div>
+  {% else %}<p class="muted">{{ t.no_results }}</p>{% endif %}
+  <p class="center"><a class="btn btn-ghost" href="/news">{{ t.more }}</a></p>
+</section>
+
+{% if popular %}<section class="block"><h2 class="h">{{ t.popular }}</h2>
+  <ol class="pop">{% for a in popular %}<li><a href="{{ url_for('go', aid=a.id) }}" target="_blank" rel="noopener nofollow">{{ a.title }}</a><span class="meta">{{ a.source_name }}</span></li>{% endfor %}</ol></section>{% endif %}
+{% endblock %}
+{% block scripts %}<script src="/static/js/weather.js?v={{ v }}" defer></script><script src="/static/js/translate.js?v={{ v }}" defer></script>{% endblock %}
