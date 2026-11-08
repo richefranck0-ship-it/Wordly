@@ -47,14 +47,16 @@ def send(subs, title, body, url="/", tag="worldly"):
         res = list(ex.map(lambda s: _one(s, payload), subs))
     return sum(res), len(res) - sum(res)
 
-def audience(category="all"):
+def audience(category="all", topic=None):
     subs = db.rows("SELECT * FROM push_subscriptions WHERE enabled=1")
     if category in CATS:
         subs = [s for s in subs if category in (s["categories"] or "").split(",")]
+    if topic:  # sujet d'actualité (ex. football) : abonnés sans sujet choisi = tous les sujets
+        subs = [s for s in subs if not (s.get("topics") or "").strip() or topic in s["topics"].split(",")]
     return subs
 
-def broadcast(title, body, url="/", category="all", kind="manual"):
-    subs = audience(category)
+def broadcast(title, body, url="/", category="all", kind="manual", topic=None):
+    subs = audience(category, topic)
     ok, fail = send(subs, title, body, url)
     nid = db.insert("notifications", dict(title=title[:120], body=body[:300], url=url[:500], category=category,
                                           kind=kind, sent_count=ok, failed_count=fail, created_at=db.now()))

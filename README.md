@@ -7,6 +7,8 @@ Données persistantes dans **Supabase PostgreSQL**, hébergement **Render**.
 | Module | Branché à un vrai système | Remarque |
 |---|---|---|
 | Actualités | GDELT DOC 2.0, stockées en base, doublons éliminés (URL + titre) | Titre, source, date, image (lien) et lien d'origine uniquement : aucun texte d'article copié |
+| Flux RSS | Deuxième source d'actualités, gérée dans l'admin (« Flux RSS »). 4 flux de départ (BBC, France 24, Al Jazeera), modifiables ; lecteur protégé contre SSRF et bombes XML | Les flux de départ sont à vérifier chez vous (adresses non testées en ligne ici) |
+| Sites partenaires | Page `/sites`, formulaire de demande, validation admin, flux RSS optionnel ajouté à l'approbation | Validation manuelle obligatoire (anti-spam) |
 | Météo | Open-Meteo (géocodage, actuel, horaire, 7 jours, lever/coucher) | Les « alertes » sont **calculées** depuis les prévisions (Open-Meteo n'a pas d'alertes officielles) |
 | Traduction écrite | MyMemory (défaut) ou LibreTranslate, détection de langue, historique local | Quota gratuit limité : renseigner `MYMEMORY_EMAIL` ou passer à LibreTranslate |
 | Traduction vocale | Web Speech API (reconnaissance + lecture) → /api/translate | Chrome/Edge/Safari récents. **À valider sur vos téléphones** (micro impossible à tester en CI) |

@@ -1,6 +1,8 @@
 """Interface multilingue (fr/en/es). La traduction de contenu passe par le module Traduction."""
 T = {
 "fr": {
+ "partners": "Sites partenaires", "partners_sub": "Découvrez des sites sélectionnés par WORLDLY.", "visit": "Visiter", "submit_site": "Proposer votre site", "all_partners": "Tous les sites",
+ "country": "Pays", "all_countries": "Tous les pays", "topics_title": "Sujets d'actualités", "topics_hint": "Cochez par exemple Football pour ne recevoir que les actualités de football. Aucun sujet coché = tous les sujets.",
  "tagline": "Tout le monde, tout en un !", "home": "Accueil", "news": "Actus", "weather": "Météo",
  "translate": "Traduire", "voice": "Voix", "notifications": "Notifications", "install": "Installer",
  "search_ph": "Rechercher une actualité…", "search": "Rechercher", "hero_sub": "Actualités, météo et traduction écrite et vocale, partout dans le monde.",
@@ -14,7 +16,7 @@ T = {
  "w0": "Ciel dégagé", "w1": "Nuageux", "w45": "Brouillard", "w51": "Bruine", "w61": "Pluie", "w71": "Neige", "w80": "Averses", "w95": "Orage",
  "al_storm": "Orages attendus", "al_rain": "Fortes pluies probables", "al_wind": "Vents violents", "al_heat": "Forte chaleur", "al_cold": "Grand froid", "al_snow": "Neige attendue",
  "from": "De", "to": "Vers", "detect": "Détecter la langue", "detected": "Langue détectée", "swap": "Inverser",
- "type_here": "Saisissez votre texte…", "translation": "Traduction", "copy": "Copier", "copied": "Copié !", "clear": "Effacer",
+ "type_here": "Saisissez votre texte…", "translation": "Traduction", "copy_text": "Copier", "copied": "Copié !", "clear_text": "Effacer",
  "listen": "Écouter", "history": "Historique", "clear_history": "Vider l'historique", "translating": "Traduction…",
  "tr_error": "Traduction impossible pour le moment.", "start": "Démarrer", "stop": "Arrêter", "listening": "Je vous écoute…",
  "tap_start": "Appuyez sur Démarrer et parlez.", "recognized": "Texte reconnu",
@@ -33,6 +35,8 @@ T = {
  "not_found": "Page introuvable", "back_home": "Retour à l'accueil", "language": "Langue",
 },
 "en": {
+ "partners": "Partner sites", "partners_sub": "Discover sites selected by WORLDLY.", "visit": "Visit", "submit_site": "Submit your site", "all_partners": "All sites",
+ "country": "Country", "all_countries": "All countries", "topics_title": "News topics", "topics_hint": "Tick Football, for example, to get only football news. Nothing ticked = all topics.",
  "tagline": "Everyone, all in one!", "home": "Home", "news": "News", "weather": "Weather", "translate": "Translate", "voice": "Voice",
  "notifications": "Notifications", "install": "Install", "search_ph": "Search news…", "search": "Search",
  "hero_sub": "News, weather and written and spoken translation, worldwide.", "popular": "Popular", "latest": "Latest news", "all": "All",
@@ -43,7 +47,7 @@ T = {
  "choose_city": "Pick a city to see the weather.", "w0": "Clear sky", "w1": "Cloudy", "w45": "Fog", "w51": "Drizzle", "w61": "Rain", "w71": "Snow", "w80": "Showers", "w95": "Thunderstorm",
  "al_storm": "Thunderstorms expected", "al_rain": "Heavy rain likely", "al_wind": "Strong winds", "al_heat": "Extreme heat", "al_cold": "Severe cold", "al_snow": "Snow expected",
  "from": "From", "to": "To", "detect": "Detect language", "detected": "Detected language", "swap": "Swap", "type_here": "Type your text…", "translation": "Translation",
- "copy": "Copy", "copied": "Copied!", "clear": "Clear", "listen": "Listen", "history": "History", "clear_history": "Clear history", "translating": "Translating…",
+ "copy_text": "Copy", "copied": "Copied!", "clear_text": "Clear", "listen": "Listen", "history": "History", "clear_history": "Clear history", "translating": "Translating…",
  "tr_error": "Translation unavailable right now.", "start": "Start", "stop": "Stop", "listening": "Listening…", "tap_start": "Tap Start and speak.", "recognized": "Recognized text",
  "err_unsupported": "Your browser has no speech recognition. Use Chrome or Edge (Android/desktop) or a recent Safari.",
  "err_denied": "Microphone access denied. Allow the microphone in your browser settings.", "err_nospeech": "No speech detected. Try again.",
@@ -59,6 +63,8 @@ T = {
  "not_found": "Page not found", "back_home": "Back to home", "language": "Language",
 },
 "es": {
+ "partners": "Sitios asociados", "partners_sub": "Descubra sitios seleccionados por WORLDLY.", "visit": "Visitar", "submit_site": "Proponer su sitio", "all_partners": "Todos los sitios",
+ "country": "País", "all_countries": "Todos los países", "topics_title": "Temas de noticias", "topics_hint": "Marque Fútbol, por ejemplo, para recibir solo noticias de fútbol. Sin marcar = todos los temas.",
  "tagline": "¡Todo el mundo, todo en uno!", "home": "Inicio", "news": "Noticias", "weather": "Clima", "translate": "Traducir", "voice": "Voz",
  "notifications": "Notificaciones", "install": "Instalar", "search_ph": "Buscar noticias…", "search": "Buscar",
  "hero_sub": "Noticias, clima y traducción escrita y por voz, en todo el mundo.", "popular": "Populares", "latest": "Últimas noticias", "all": "Todas",
@@ -69,7 +75,7 @@ T = {
  "choose_city": "Elija una ciudad para ver el clima.", "w0": "Despejado", "w1": "Nublado", "w45": "Niebla", "w51": "Llovizna", "w61": "Lluvia", "w71": "Nieve", "w80": "Chubascos", "w95": "Tormenta",
  "al_storm": "Se esperan tormentas", "al_rain": "Lluvias fuertes probables", "al_wind": "Vientos fuertes", "al_heat": "Calor extremo", "al_cold": "Frío intenso", "al_snow": "Se espera nieve",
  "from": "De", "to": "A", "detect": "Detectar idioma", "detected": "Idioma detectado", "swap": "Invertir", "type_here": "Escriba su texto…", "translation": "Traducción",
- "copy": "Copiar", "copied": "¡Copiado!", "clear": "Borrar", "listen": "Escuchar", "history": "Historial", "clear_history": "Borrar historial", "translating": "Traduciendo…",
+ "copy_text": "Copiar", "copied": "¡Copiado!", "clear_text": "Borrar", "listen": "Escuchar", "history": "Historial", "clear_history": "Borrar historial", "translating": "Traduciendo…",
  "tr_error": "Traducción no disponible ahora.", "start": "Iniciar", "stop": "Detener", "listening": "Escuchando…", "tap_start": "Pulse Iniciar y hable.", "recognized": "Texto reconocido",
  "err_unsupported": "Su navegador no admite reconocimiento de voz. Use Chrome o Edge (Android/PC) o un Safari reciente.",
  "err_denied": "Acceso al micrófono denegado. Permítalo en los ajustes del navegador.", "err_nospeech": "No se detectó voz. Inténtelo de nuevo.",

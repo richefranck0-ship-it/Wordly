@@ -14,7 +14,7 @@ if config.IS_PROD and not config.SECRET_KEY:
 app = Flask(__name__)
 app.secret_key = config.SECRET_KEY
 app.config.update(SESSION_COOKIE_HTTPONLY=True, SESSION_COOKIE_SAMESITE="Lax", SESSION_COOKIE_SECURE=config.IS_PROD,
-                  MAX_CONTENT_LENGTH=64 * 1024, PERMANENT_SESSION_LIFETIME=60 * 60 * 8, JSON_AS_ASCII=False)
+                  MAX_CONTENT_LENGTH=700 * 1024, PERMANENT_SESSION_LIFETIME=60 * 60 * 8, JSON_AS_ASCII=False)
 db.init_db()
 
 ASSET_V = str(int(max(os.path.getmtime(os.path.join(r, f)) for r, _, fs in os.walk(os.path.join(app.root_path, "static")) for f in fs)))
@@ -40,8 +40,11 @@ def csrf_token():
 def active_ads():
     if db.setting("ads_enabled", "1") != "1": return []
     n = db.now()
-    ads = db.rows("SELECT * FROM campaigns WHERE active=1 AND paid=1 AND start_at<=? AND end_at>=? ORDER BY id LIMIT 2", (n, n))
-    for a in ads: db.run("UPDATE campaigns SET impressions=impressions+1 WHERE id=?", (a["id"],))
+    ads = db.rows("SELECT id, title, text, link, image_url, image_mime, placement FROM campaigns WHERE active=1 AND paid=1 AND start_at<=? AND end_at>=? ORDER BY id LIMIT 2", (n, n))
+    for a in ads:
+        a["img"] = a["image_url"] or (f"/ads/img/{a['id']}" if a["image_mime"] else "")
+        a["placement"] = a["placement"] or "bottom"
+        db.run("UPDATE campaigns SET impressions=impressions+1 WHERE id=?", (a["id"],))
     return ads
 
 def log_error(msg):
@@ -121,7 +124,7 @@ def index():
     top = news.query(order="recent", per=9)
     return render_template("index.html", top=top[:8], popular=news.query(order="popular", per=5)[:5],
                            page_title="WORLDLY – " + g_t("tagline"), page_desc=g_t("hero_sub"),
-                           categories=db.rows("SELECT * FROM categories WHERE active=1 ORDER BY position"))
+                           partners=partners_list(6), categories=db.rows("SELECT * FROM categories WHERE active=1 ORDER BY position"))
 
 def g_t(k): return i18n.get(g.lang)[k]
 
@@ -130,10 +133,11 @@ def news_page():
     maybe_refresh()
     cat, q, l = request.args.get("cat", "")[:30], request.args.get("q", "").strip()[:80], request.args.get("l", "")
     page = max(1, request.args.get("page", 1, type=int))
-    items = news.query(cat, q, l if l in ("fr", "en", "es") else "", page)
+    co = request.args.get("co", "")[:60]
+    items = news.query(cat, q, l if l in ("fr", "en", "es") else "", page, country=co)
     more = len(items) > 20
     cats = db.rows("SELECT * FROM categories WHERE active=1 ORDER BY position")
-    return render_template("news.html", items=items[:20], more=more, page=page, cat=cat, q=q, l=l, categories=cats,
+    return render_template("news.html", items=items[:20], more=more, page=page, cat=cat, q=q, l=l, co=co, countries=news.countries(), categories=cats,
                            latest_id=db.val("SELECT MAX(id) FROM articles"), page_title=g_t("news") + " – WORLDLY",
                            page_desc=g_t("latest"))
 
@@ -151,6 +155,57 @@ def ad_click(cid):
     db.run("UPDATE campaigns SET clicks=clicks+1 WHERE id=?", (cid,))
     return redirect(c["link"], 302)
 
+@app.route("/ads/img/<int:cid>")
+def ad_img(cid):
+    import base64
+    c = db.row("SELECT image_data, image_mime FROM campaigns WHERE id=? AND image_data IS NOT NULL", (cid,))
+    if not c: abort(404)
+    r = Response(base64.b64decode(c["image_data"]), mimetype=c["image_mime"])
+    r.headers["Cache-Control"] = "public, max-age=3600"; return r
+
+@app.route("/sites")
+def sites_page():
+    return render_template("sites.html", partners=partners_list(), page_title=g_t("partners") + " – WORLDLY", page_desc=g_t("partners_sub"))
+
+def partners_list(limit=200):
+    return db.rows("SELECT id, name, url, description, logo_url, featured FROM partner_sites WHERE status='approved' ORDER BY featured DESC, name LIMIT ?", (limit,))
+
+@app.route("/sites/go/<int:pid>")
+def site_go(pid):
+    p = db.row("SELECT url FROM partner_sites WHERE id=? AND status='approved'", (pid,))
+    if not p: abort(404)
+    db.run("UPDATE partner_sites SET clicks=clicks+1 WHERE id=?", (pid,))
+    return redirect(p["url"], 302)
+
+@app.route("/sites/submit", methods=["GET", "POST"])
+def site_submit():
+    if request.method == "POST":
+        f = request.form
+        if f.get("website"): return redirect("/sites/submit")
+        if limited("site", 3, 3600): abort(429, "Trop de demandes. Réessayez plus tard.")
+        d = dict(name=f.get("name", "").strip()[:80], url=f.get("url", "").strip(), description=f.get("description", "").strip()[:400],
+                 email=f.get("email", "").strip()[:255], logo_url=f.get("logo_url", "").strip(), feed_url=f.get("feed_url", "").strip(),
+                 feed_lang=f.get("feed_lang") if f.get("feed_lang") in ("fr", "en", "es") else "fr")
+        bad = (len(d["name"]) < 2 or not URL_RE.match(d["url"]) or len(d["description"]) < 20 or not MAIL_RE.match(d["email"]) or not f.get("consent")
+               or (d["logo_url"] and not (URL_RE.match(d["logo_url"]) and d["logo_url"].startswith("https://")))
+               or (d["feed_url"] and not URL_RE.match(d["feed_url"])))
+        if bad:
+            flash("Vérifiez les champs (description ≥ 20 caractères, liens http(s) valides, logo en https, consentement).", "err")
+            return render_template("site_submit.html", form=f, page_title="Proposer votre site – WORLDLY"), 400
+        if db.row("SELECT id FROM partner_sites WHERE url=? AND status<>'rejected'", (d["url"],)):
+            flash("Ce site a déjà été proposé.", "err")
+            return render_template("site_submit.html", form=f, page_title="Proposer votre site – WORLDLY"), 400
+        d.update(status="pending", token=secrets.token_urlsafe(16), created_at=db.now())
+        db.insert("partner_sites", d)
+        return redirect(url_for("site_status", token=d["token"]))
+    return render_template("site_submit.html", form={}, page_title="Proposer votre site – WORLDLY")
+
+@app.route("/sites/status/<token>")
+def site_status(token):
+    r = db.row("SELECT * FROM partner_sites WHERE token=?", (token,))
+    if not r: abort(404)
+    return render_template("site_status.html", r=r, page_title="Suivi – WORLDLY")
+
 @app.route("/weather")
 def weather_page(): return render_template("weather.html", page_title=g_t("weather") + " – WORLDLY", page_desc=g_t("weather"))
 
@@ -161,7 +216,7 @@ def translate_page(): return render_template("translate.html", page_title=g_t("t
 def voice_page(): return render_template("voice.html", page_title=g_t("voice") + " – WORLDLY", page_desc=g_t("quick_voice"))
 
 @app.route("/notifications")
-def notifications_page(): return render_template("notifications.html", page_title=g_t("notifications") + " – WORLDLY")
+def notifications_page(): return render_template("notifications.html", categories=db.rows("SELECT slug, label FROM categories WHERE active=1 ORDER BY position"), page_title=g_t("notifications") + " – WORLDLY")
 
 @app.route("/download")
 def download_page(): return render_template("download.html", page_title=g_t("download") + " – WORLDLY")
@@ -253,10 +308,12 @@ def api_push_subscribe():
     ep = s.get("endpoint", "")
     if not push.valid_endpoint(ep) or not keys.get("p256dh") or not keys.get("auth"): return jsonify(error="invalid"), 400
     cats = ",".join(c for c in (j.get("categories") or []) if c in push.CATS)
+    slugs = {c["slug"] for c in db.rows("SELECT slug FROM categories")}
+    topics = ",".join(x for x in (j.get("topics") or []) if x in slugs)
     w = j.get("weather") or {}
     wl = (isinstance(w.get("lat"), (int, float)) and isinstance(w.get("lon"), (int, float)) and abs(w["lat"]) <= 90 and abs(w["lon"]) <= 180)
     data = dict(p256dh=keys["p256dh"][:200], auth=keys["auth"][:100], lang=j.get("lang") if j.get("lang") in UI_LANGS else "fr",
-                categories=cats, weather_on=1 if (w.get("on") and wl) else 0, weather_lat=w["lat"] if wl else None,
+                categories=cats, topics=topics, weather_on=1 if (w.get("on") and wl) else 0, weather_lat=w["lat"] if wl else None,
                 weather_lon=w["lon"] if wl else None, weather_city=str(w.get("city", ""))[:80], enabled=1)
     if db.row("SELECT id FROM push_subscriptions WHERE endpoint=?", (ep,)):
         sets = ",".join(f"{k}=?" for k in data)
@@ -268,8 +325,8 @@ def api_push_subscribe():
 @app.post("/api/push/prefs")
 def api_push_prefs():
     ep = (request.get_json(silent=True) or {}).get("endpoint", "")
-    r = db.row("SELECT categories, weather_on, weather_city FROM push_subscriptions WHERE endpoint=?", (ep,))
-    return jsonify(subscribed=bool(r), categories=(r["categories"].split(",") if r and r["categories"] else []),
+    r = db.row("SELECT categories, topics, weather_on, weather_city FROM push_subscriptions WHERE endpoint=?", (ep,))
+    return jsonify(subscribed=bool(r), categories=(r["categories"].split(",") if r and r["categories"] else []), topics=(r["topics"].split(",") if r and r["topics"] else []),
                    weather_on=bool(r and r["weather_on"]), city=r["weather_city"] if r else "")
 
 @app.post("/api/push/unsubscribe")
@@ -313,13 +370,13 @@ def favicon(): return send_from_directory("static/icons", "favicon.ico")
 @app.route("/robots.txt")
 def robots():
     base = config.SITE_URL or request.url_root.rstrip("/")
-    return Response(f"User-agent: *\nAllow: /\nDisallow: /api/\nDisallow: /go/\nDisallow: /advertise/status/\nSitemap: {base}/sitemap.xml\n", mimetype="text/plain")
+    return Response(f"User-agent: *\nAllow: /\nDisallow: /api/\nDisallow: /go/\nDisallow: /sites/go/\nDisallow: /sites/status/\nDisallow: /advertise/status/\nSitemap: {base}/sitemap.xml\n", mimetype="text/plain")
 
 @app.route("/sitemap.xml")
 def sitemap():
     base = config.SITE_URL or request.url_root.rstrip("/")
     paths = ["/", "/news", "/weather", "/translate", "/voice", "/notifications", "/download", "/advertise", "/faq",
-             "/terms", "/privacy", "/legal", "/contact"] + [f"/news?cat={c['slug']}" for c in db.rows("SELECT slug FROM categories WHERE active=1")]
+             "/sites", "/terms", "/privacy", "/legal", "/contact"] + [f"/news?cat={c['slug']}" for c in db.rows("SELECT slug FROM categories WHERE active=1")]
     body = "".join(f"<url><loc>{base}{p.replace('&', '&amp;')}</loc></url>" for p in paths)
     return Response(f'<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{body}</urlset>', mimetype="application/xml")
 
