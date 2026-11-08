@@ -1,0 +1,4 @@
+{% extends "base.html" %}{% from "_macros.html" import partner %}
+{% block content %}<section class="block"><h1 class="h1">{{ t.partners }}</h1><p class="lead">{{ t.partners_sub }}</p>
+<p><a class="btn" href="/sites/submit">{{ t.submit_site }}</a></p>
+{% if partners %}<div class="partners">{% for p in partners %}{{ partner(p) }}{% endfor %}</div>{% else %}<p class="muted">{{ t.empty }}</p>{% endif %}</section>{% endblock %}

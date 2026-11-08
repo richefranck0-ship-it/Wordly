@@ -9,9 +9,9 @@
   </div>
   <div class="panes">
     <div><label class="sr" for="tr-in">{{ t.from }}</label><textarea id="tr-in" rows="6" maxlength="2000" placeholder="{{ t.type_here }}"></textarea>
-      <div class="row"><button class="btn btn-ghost btn-small" id="tr-clear" type="button">{{ t.clear }}</button><span class="muted" id="tr-detected"></span></div></div>
+      <div class="row"><button class="btn btn-ghost btn-small" id="tr-clear" type="button">{{ t.clear_text }}</button><span class="muted" id="tr-detected"></span></div></div>
     <div><p class="out" id="tr-out" aria-live="polite" dir="auto"></p>
-      <div class="row"><button class="btn btn-ghost btn-small" id="tr-copy" type="button">{{ t.copy }}</button><button class="btn btn-ghost btn-small" id="tr-listen" type="button">{{ t.listen }}</button></div></div>
+      <div class="row"><button class="btn btn-ghost btn-small" id="tr-copy" type="button">{{ t.copy_text }}</button><button class="btn btn-ghost btn-small" id="tr-listen" type="button">{{ t.listen }}</button></div></div>
   </div>
   <h2 class="h">{{ t.history }}</h2><ul id="tr-history" class="history"></ul>
   <button class="btn btn-ghost btn-small" id="tr-clear-history" type="button">{{ t.clear_history }}</button>

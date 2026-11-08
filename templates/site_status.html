@@ -1,0 +1,5 @@
+{% extends "base.html" %}{% block content %}
+<section class="block narrow"><h1 class="h1">Suivi de votre site</h1><p><strong>{{ r.name }}</strong> · {{ r.url }}</p>
+{% if r.status == 'pending' %}<p class="flash ok">En attente de validation. Conservez cette page (lien privé).</p>
+{% elif r.status == 'approved' %}<p class="flash ok">Site approuvé : il est affiché sur la page <a href="/sites">Sites partenaires</a>.</p>
+{% else %}<p class="flash err">Demande refusée.{% if r.admin_note %} Motif : {{ r.admin_note }}{% endif %}</p>{% endif %}</section>{% endblock %}

@@ -1,4 +1,5 @@
 <!doctype html>
+{% macro ad_list(items) %}{% for a in items %}<a class="ad{% if a.img %} ad-banner{% endif %}" href="/ads/click/{{ a.id }}" target="_blank" rel="sponsored nofollow noopener">{% if a.img %}<img src="{{ a.img }}" alt="{{ a.title }}" loading="lazy" referrerpolicy="no-referrer" data-hide-on-error><span class="pill">{{ t.ad_label }}</span>{% if a.text %}<span>{{ a.text }}</span>{% endif %}{% else %}<span class="pill">{{ t.ad_label }}</span><strong>{{ a.title }}</strong><span>{{ a.text }}</span>{% endif %}</a>{% endfor %}{% endmacro %}
 <html lang="{{ lang }}" dir="{{ 'rtl' if rtl else 'ltr' }}">
 <head>
 <meta charset="utf-8">
@@ -41,12 +42,12 @@
   <div><strong>{{ t.notif_title }}</strong><p>{{ t.notif_intro }}</p></div>
   <div class="banner-actions"><button class="btn" id="push-enable" type="button">{{ t.enable }}</button><button class="btn btn-ghost" id="push-later" type="button">{{ t.later }}</button></div>
 </div>
+{% set ads_top = ads|selectattr('placement', 'eq', 'top')|list %}{% if ads_top %}<aside class="ads ads-top" aria-label="{{ t.ad_label }}">{{ ad_list(ads_top) }}</aside>{% endif %}
 <main id="main">{% block content %}{% endblock %}</main>
-{% if ads %}<aside class="ads" aria-label="{{ t.ad_label }}">{% for a in ads %}
-  <a class="ad" href="/ads/click/{{ a.id }}" target="_blank" rel="sponsored nofollow noopener"><span class="pill">{{ t.ad_label }}</span><strong>{{ a.title }}</strong><span>{{ a.text }}</span></a>{% endfor %}</aside>{% endif %}
+{% set ads_bottom = ads|selectattr('placement', 'ne', 'top')|list %}{% if ads_bottom %}<aside class="ads" aria-label="{{ t.ad_label }}">{{ ad_list(ads_bottom) }}</aside>{% endif %}
 <footer class="foot">
   <p class="foot-slogan">{{ t.tagline }}</p>
-  <nav aria-label="Footer"><a href="/advertise">{{ t.advertise }}</a><a href="/download">{{ t.download }}</a><a href="/faq">{{ t.faq }}</a><a href="/terms">{{ t.terms }}</a><a href="/privacy">{{ t.privacy }}</a><a href="/legal">{{ t.legal }}</a><a href="/contact">{{ t.contact }}</a><a href="/privacy-settings">{{ t.privacy_settings }}</a></nav>
+  <nav aria-label="Footer"><a href="/sites">{{ t.partners }}</a><a href="/advertise">{{ t.advertise }}</a><a href="/download">{{ t.download }}</a><a href="/faq">{{ t.faq }}</a><a href="/terms">{{ t.terms }}</a><a href="/privacy">{{ t.privacy }}</a><a href="/legal">{{ t.legal }}</a><a href="/contact">{{ t.contact }}</a><a href="/privacy-settings">{{ t.privacy_settings }}</a></nav>
   <p class="muted">© {{ site_name }}</p>
 </footer>
 <nav class="tabbar" aria-label="Mobile">

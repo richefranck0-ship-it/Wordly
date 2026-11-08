@@ -1,4 +1,4 @@
-{% extends "base.html" %}{% from "_macros.html" import card %}
+{% extends "base.html" %}{% from "_macros.html" import card, partner %}
 {% block content %}
 <section class="hero">
   <svg class="hero-globe" viewBox="0 0 400 400" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="200" cy="200" r="190"/><ellipse cx="200" cy="200" rx="120" ry="190"/><ellipse cx="200" cy="200" rx="50" ry="190"/><path d="M10 200h380M40 110h320M40 290h320M80 50h240M80 350h240"/></g></svg>
@@ -43,5 +43,7 @@
 
 {% if popular %}<section class="block"><h2 class="h">{{ t.popular }}</h2>
   <ol class="pop">{% for a in popular %}<li><a href="{{ url_for('go', aid=a.id) }}" target="_blank" rel="noopener nofollow">{{ a.title }}</a><span class="meta">{{ a.source_name }}</span></li>{% endfor %}</ol></section>{% endif %}
+{% if partners %}<section class="block"><h2 class="h">{{ t.partners }}</h2><div class="partners">{% for p in partners %}{{ partner(p) }}{% endfor %}</div>
+  <p class="center"><a class="btn btn-ghost" href="/sites">{{ t.all_partners }}</a> <a class="btn btn-ghost" href="/sites/submit">{{ t.submit_site }}</a></p></section>{% endif %}
 {% endblock %}
 {% block scripts %}<script src="/static/js/weather.js?v={{ v }}" defer></script><script src="/static/js/translate.js?v={{ v }}" defer></script>{% endblock %}

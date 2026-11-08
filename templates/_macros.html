@@ -1,10 +1,16 @@
+{% macro partner(p) %}
+<a class="partner{% if p.featured %} partner-feat{% endif %}" href="{{ url_for('site_go', pid=p.id) }}" target="_blank" rel="noopener nofollow">
+  {% if p.logo_url %}<img src="{{ p.logo_url }}" alt="" width="56" height="56" loading="lazy" referrerpolicy="no-referrer" data-hide-on-error>{% else %}<span class="partner-ph" aria-hidden="true">{{ p.name[:1]|upper }}</span>{% endif %}
+  <span class="partner-t"><strong>{{ p.name }}</strong><span class="muted">{{ p.description[:110] }}{% if p.description|length > 110 %}…{% endif %}</span></span>
+</a>
+{% endmacro %}
 {% macro card(a, big=False) %}
 <article class="card{% if big %} card-big{% endif %}">
   {% if a.image %}<a class="card-img" href="{{ url_for('go', aid=a.id) }}" target="_blank" rel="noopener nofollow" tabindex="-1" aria-hidden="true">
     <img src="{{ a.image }}" alt="" loading="lazy" width="640" height="360" referrerpolicy="no-referrer" data-hide-on-error></a>{% endif %}
   <div class="card-body">
     <h3><a href="{{ url_for('go', aid=a.id) }}" target="_blank" rel="noopener nofollow">{{ a.title }}</a></h3>
-    <p class="meta"><span>{{ a.source_name or a.domain }}</span>
+    <p class="meta"><span>{{ a.source_name or a.domain }}{% if a.country %} · {{ a.country }}{% endif %}</span>
       <time datetime="{{ a.published_at.replace(' ', 'T') }}Z" data-rel>{{ a.published_at[:16] }}</time>
       {% if a.featured %}<span class="pill">{{ t.featured }}</span>{% endif %}</p>
   </div>

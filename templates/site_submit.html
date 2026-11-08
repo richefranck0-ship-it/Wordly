@@ -1,0 +1,15 @@
+{% extends "base.html" %}{% block content %}
+<section class="block narrow"><h1 class="h1">{{ t.submit_site }}</h1>
+<p class="lead">Faites découvrir votre site aux visiteurs de WORLDLY. Chaque site est validé par notre équipe avant d'être affiché. Si vous fournissez un flux RSS, vos titres d'articles peuvent aussi apparaître dans nos actualités, avec un lien vers votre site.</p>
+{% with m = get_flashed_messages(with_categories=true) %}{% for c, x in m %}<p class="flash {{ c }}" role="alert">{{ x }}</p>{% endfor %}{% endwith %}
+<form method="post" class="form"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
+<input class="hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+<label>Nom du site<input name="name" required minlength="2" maxlength="80" value="{{ form.get('name', '') }}"></label>
+<label>Adresse du site<input type="url" name="url" required placeholder="https://" maxlength="500" value="{{ form.get('url', '') }}"></label>
+<label>Description (20 à 400 caractères)<textarea name="description" rows="3" required minlength="20" maxlength="400">{{ form.get('description', '') }}</textarea></label>
+<label>E-mail de contact<input type="email" name="email" required maxlength="255" value="{{ form.get('email', '') }}"></label>
+<label>Logo (lien https, optionnel)<input type="url" name="logo_url" placeholder="https://…/logo.png" value="{{ form.get('logo_url', '') }}"></label>
+<label>Flux RSS de vos actualités (optionnel)<input type="url" name="feed_url" placeholder="https://…/rss.xml" value="{{ form.get('feed_url', '') }}"></label>
+<label>Langue du flux<select name="feed_lang"><option value="fr">Français</option><option value="en">English</option><option value="es">Español</option></select></label>
+<label class="check"><input type="checkbox" name="consent" required> J'accepte les <a href="/terms">conditions d'utilisation</a> et d'être contacté à propos de cette demande.</label>
+<button class="btn" type="submit">Envoyer la demande</button></form></section>{% endblock %}

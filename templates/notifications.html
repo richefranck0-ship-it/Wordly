@@ -11,6 +11,8 @@
     <label><input type="checkbox" value="ads" checked> {{ t.cat_ads }}</label>
     <label><input type="checkbox" id="n-weather-city"> {{ t.weather_notif }} <span class="muted" id="n-city"></span></label>
   </fieldset>
+  <fieldset class="prefs" id="n-topics"><legend>{{ t.topics_title }}</legend><p class="muted">{{ t.topics_hint }}</p>
+    {% for c in categories %}<label><input type="checkbox" value="{{ c.slug }}"> {{ c.label }}</label>{% endfor %}</fieldset>
   <div class="row"><button class="btn" id="n-enable" type="button">{{ t.enable }}</button><button class="btn btn-ghost" id="n-disable" type="button" hidden>{{ t.disable }}</button></div>
   <p class="muted" id="n-hint"></p>
   <h2 class="h">{{ t.notif_history }}</h2><ul class="history" id="n-history"><li class="muted">{{ t.empty }}</li></ul>

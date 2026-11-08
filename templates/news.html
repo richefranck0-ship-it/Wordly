@@ -4,16 +4,24 @@
   <h1 class="h1">{{ t.news }}</h1>
   <form class="search" action="/news" method="get" role="search">
     <input type="search" name="q" value="{{ q }}" placeholder="{{ t.search_ph }}" aria-label="{{ t.search }}" maxlength="80">
-    {% if cat %}<input type="hidden" name="cat" value="{{ cat }}">{% endif %}{% if l %}<input type="hidden" name="l" value="{{ l }}">{% endif %}
+    {% if cat %}<input type="hidden" name="cat" value="{{ cat }}">{% endif %}{% if l %}<input type="hidden" name="l" value="{{ l }}">{% endif %}{% if co %}<input type="hidden" name="co" value="{{ co }}">{% endif %}
     <button class="btn" type="submit">{{ t.search }}</button>
   </form>
-  <div class="chips"><a class="chip {% if not cat %}on{% endif %}" href="/news?l={{ l }}">{{ t.all }}</a>
-    {% for c in categories %}<a class="chip {% if cat == c.slug %}on{% endif %}" href="/news?cat={{ c.slug }}&l={{ l }}">{{ c.label }}</a>{% endfor %}</div>
-  <div class="chips"><a class="chip chip-s {% if not l %}on{% endif %}" href="/news?cat={{ cat }}&q={{ q }}">{{ t.all_langs }}</a>
-    {% for c in ['fr','en','es'] %}<a class="chip chip-s {% if l == c %}on{% endif %}" href="/news?cat={{ cat }}&q={{ q }}&l={{ c }}">{{ c|upper }}</a>{% endfor %}</div>
+  <div class="chips"><a class="chip {% if not cat %}on{% endif %}" href="{{ url_for('news_page', l=l, co=co) }}">{{ t.all }}</a>
+    {% for c in categories %}<a class="chip {% if cat == c.slug %}on{% endif %}" href="{{ url_for('news_page', cat=c.slug, l=l, co=co) }}">{{ c.label }}</a>{% endfor %}</div>
+  <div class="row filters">
+    <form action="/news" method="get" class="row">
+      {% if cat %}<input type="hidden" name="cat" value="{{ cat }}">{% endif %}{% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}{% if l %}<input type="hidden" name="l" value="{{ l }}">{% endif %}
+      <label class="sr" for="co-sel">{{ t.country }}</label>
+      <select id="co-sel" name="co" data-autosubmit><option value="">{{ t.all_countries }}</option>{% for c in countries %}<option value="{{ c.country }}" {% if c.country == co %}selected{% endif %}>{{ c.country }} ({{ c.n }})</option>{% endfor %}</select>
+      <noscript><button class="btn btn-small" type="submit">OK</button></noscript>
+    </form>
+    <a class="chip chip-s {% if not l %}on{% endif %}" href="{{ url_for('news_page', cat=cat, q=q, co=co) }}">{{ t.all_langs }}</a>
+    {% for c in ['fr','en','es'] %}<a class="chip chip-s {% if l == c %}on{% endif %}" href="{{ url_for('news_page', cat=cat, q=q, l=c, co=co) }}">{{ c|upper }}</a>{% endfor %}
+  </div>
   <button class="banner banner-new" id="new-articles" type="button" hidden>{{ t.new_articles }}</button>
   {% if items %}<div class="grid">{% for a in items %}{{ card(a, loop.first and page == 1 and not q) }}{% endfor %}</div>
   {% else %}<p class="muted">{{ t.no_results }}</p>{% endif %}
-  {% if more %}<p class="center"><a class="btn" href="/news?cat={{ cat }}&q={{ q }}&l={{ l }}&page={{ page + 1 }}">{{ t.more }}</a></p>{% endif %}
+  {% if more %}<p class="center"><a class="btn" href="{{ url_for('news_page', cat=cat, q=q, l=l, co=co, page=page + 1) }}">{{ t.more }}</a></p>{% endif %}
 </section>
 {% endblock %}
